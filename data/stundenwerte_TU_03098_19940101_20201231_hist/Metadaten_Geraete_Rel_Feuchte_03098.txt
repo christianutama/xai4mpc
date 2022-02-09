@@ -1,0 +1,8 @@
+Stations_ID;Stationsname;Geo. Laenge [Grad];Geo. Breite [Grad];Stationshoehe [m];Geberhoehe ueber Grund [m];Von_Datum;Bis_Datum;Geraetetyp Name;Messverfahren;eor;
+3098;Lüdenscheid;7.64;51.25;386.7;2;19940101;20051122;HYGROMER MP100;Feuchtemessung, elektr.;eor;
+3098;Lüdenscheid;7.64;51.25;386.7;2;19940101;20030824;Thermohygrograph;Temperatur- und Feuchtereg., konv.;eor;
+3098;Lüdenscheid;7.64;51.25;386.7;2.2;20030825;20060129;Thermohygrograph;Temperatur- und Feuchtereg., konv.;eor;
+3098;Lüdenscheid;7.64;51.25;386.7;2;20051123;20100623;Feuchtesonde HMP45D;Feuchtemessung, elektr.;eor;
+3098;Lüdenscheid;7.64;51.25;386.7;2;20100624;20140819;Feuchtesonde HMP45D;Feuchtemessung, elektr.;eor;
+3098;Lüdenscheid;7.64;51.25;386.7;2;20140820;20210327;EE33;Feuchtemessung, elektr.;eor;
+generiert: 30.03.2021 --  Deutscher Wetterdienst  --

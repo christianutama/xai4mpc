@@ -1,0 +1,6 @@
+Stations_ID;Von_Datum;Bis_Datum;Stationsname;Parameter;Parameterbeschreibung;Einheit;Datenquelle (Strukturversion=SV);Zusatz-Info;Besonderheiten;Literaturhinweis;eor;
+3098;20060101;20130731;Lüdenscheid;FD_LBERG;Stundensumme der kurzwelligen diffusen Himmelsstrahlung;J/cm²;Strahlungsmessnetz, nur Gerätetyp Pyranometer (früher wissenschaftliches Messnetz des MOL);in UTC und WOZ;;;eor;
+3098;20060101;20130731;Lüdenscheid;FG_LBERG;Stundensumme der kurzwelligen Globalstrahlung;J/cm²;Strahlungsmessnetz, nur Gerätetyp Pyranometer (früher wissenschaftliches Messnetz des MOL);in UTC und WOZ;;;eor;
+3098;20060101;20130731;Lüdenscheid;SD_LBERG;Stundensumme der Sonnenscheindauer;Minute;Strahlungsmessnetz, nur Gerätetyp Pyranometer (früher wissenschaftliches Messnetz des MOL);in UTC und WOZ;;;eor;
+Legende: FT  = Folgetag; GZ = Gesetzliche Zeit
+generiert: 02.12.2021 --  Deutscher Wetterdienst  --
