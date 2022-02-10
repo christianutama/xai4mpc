@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow.keras import regularizers
 from tensorflow import keras
 import pdb
+import pandas as pd
 
 """ Params """
 n_hidden_layers = 6
@@ -19,6 +20,14 @@ X_raw = data['X']
 U_raw = data['U']
 P_raw = data['P']
 H = data['H']
+
+dt_index = pd.date_range(start="2009-01-01", end="2009-12-27", freq='1H', tz='Europe/Berlin')[:-1]
+complete_index = np.arange(0, 8640)
+# Define test set indices: last week of each month (168 h)
+test_index = np.where(dt_index.month == 1)[0][-168:]
+for i in range(2, 13):
+    test_index = np.hstack([test_index, np.where(dt_index.month == i)[0][-168:]])
+train_index = np.setdiff1d(complete_index, test_index)
 
 # Summarized P_hvac = P_heat (P[:,0]) - P_cool (P[:,1])
 P_hvac = [np.reshape(u_raw[0, 0] - u_raw[1, 0], (1, 1)) for u_raw in U_raw]
@@ -50,20 +59,24 @@ data_in = []
 for x_s, t_s, sr_s in zip(X_s, T_s, SR_s):
     data_in.append(np.hstack([x_s, t_s, sr_s]).reshape(1, -1))
 
-# TODO: re-generate training samples
-data_in = np.load('data/input_init.npy')
-U_s = np.load('data/output_init.npy')
+X = np.vstack(data_in)
+y = np.vstack(U_s)
+
+X_train = X[train_index]
+X_test = X[test_index]
+y_train = y[train_index]
+y_test = y[test_index]
 
 """ Build NN model """
 # TODO: revert to original script
-# inputs = keras.Input(shape=(data_in[0].shape[1],))
-inputs = keras.Input(shape=(data_in.shape[1],))
+inputs = keras.Input(shape=(data_in[0].shape[1],))
+# inputs = keras.Input(shape=(data_in.shape[1],))
 x = keras.layers.Dense(w_hidden_layers,activation='relu')(inputs)
 for _ in range(n_hidden_layers-1):
     x = keras.layers.Dense(w_hidden_layers,activation='relu')(x)
 # TODO: revert to original script
-# outputs = keras.layers.Dense(U_s[0].shape[1],activation='linear')(x)
-outputs = keras.layers.Dense(U_s.shape[1],activation='linear')(x)
+outputs = keras.layers.Dense(U_s[0].shape[1],activation='linear')(x)
+# outputs = keras.layers.Dense(U_s.shape[1],activation='linear')(x)
 
 model = keras.Model([inputs], [outputs])
 
@@ -71,8 +84,9 @@ model.compile(optimizer='adam',loss='mse')
 
 # Train model
 # TODO: revert to original script
-# hist = model.fit(np.vstack(data_in), np.vstack(U_s), batch_size = batch_size, epochs= epochs, shuffle=True)
-hist = model.fit(data_in, U_s, batch_size = batch_size, epochs= epochs, shuffle=True)
+hist = model.fit(X_train, y_train, batch_size = batch_size, epochs= epochs, shuffle=True, validation_split=0.2)
+# hist = model.fit(data_in, U_s, batch_size = batch_size, epochs= epochs, shuffle=True)
+model.evaluate(X_test, y_test)
 
 # save model
 model.save('./models/nn_controller_small.h5')
@@ -80,3 +94,5 @@ model.save('./models/nn_controller_small.h5')
 # save input-output
 np.save('./data/input', np.vstack(data_in))
 np.save('./data/output', np.vstack(U_s))
+np.save('./data/X_train', X_train)
+np.save('./data/X_test', X_test)
