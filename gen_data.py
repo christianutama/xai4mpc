@@ -42,7 +42,7 @@ from template_simulator import template_simulator
 
 
 """ Params """
-n_trajectories = 5
+n_trajectories = 1
 n_days = 360
 
 
