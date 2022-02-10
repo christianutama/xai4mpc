@@ -49,7 +49,7 @@ from template_simulator import template_simulator
 Get configured do-mpc modules:
 """
 model = template_model()
-mpc = tf.keras.models.load_model('./models/nn_controller.h5')
+mpc = tf.keras.models.load_model('./models/nn_controller_small.h5')
 simulator = template_simulator(model)
 estimator = do_mpc.estimator.StateFeedback(model)
 
@@ -76,6 +76,17 @@ u_lb = np.array([[-1000, -1000]])
 u_ub = np.array([[ 1000,  1000]])
 
 
+with open(r'./data/training_data.pkl', 'rb') as f:
+    data = pickle.load(f)
+P_raw = data['P']
+p_lb = np.array([[-10.0,    0.0]])
+p_ub = np.array([[ 30.0, 1200.0]])
+P_s = [(p - p_lb)/(p_ub - p_lb) for p in P_raw]
+T_s = [np.reshape(p[:, 0], (1, -1)) for p in P_s]
+SR_s = [np.reshape(p[:, 1], (1, -1)) for p in P_s]
+
+
+
 """
 Setup graphic:
 """
@@ -94,7 +105,8 @@ for k in range(10): #range(7*24):
     # scale states
     x0_scaled = (x0.T - x_lb) / (x_ub - x_lb)
     weather_data_dummy = np.ones((1, 50)) * 0.5 # NOTE: Add here the respective (scaled) weather data
-    u0_scaled = mpc.predict(np.hstack([x0_scaled, weather_data_dummy]))
+
+    u0_scaled = mpc.predict(np.hstack([x0_scaled, T_s[k], SR_s[k]]))
     u0_real = u0_scaled * (u_ub - u_lb) + u_lb           # scale to real values
     u0_sat = np.minimum(np.maximum(u0_real, u_lb), u_ub) # ensure admissible control inputs via saturation
 
