@@ -42,8 +42,8 @@ from template_simulator import template_simulator
 
 
 """ Params """
-n_trajectories = 1
-n_days = 360
+n_trajectories = 20000
+n_days = 1
 
 
 """
@@ -65,7 +65,7 @@ for i in range(n_trajectories):
     Get configured do-mpc modules:
     """
     # init_offset = np.random.randint(2000 - (n_days + 1) * 24 - 1)
-    init_offset = 0
+    init_offset = np.random.randint(0, 8500)
     model = template_model()
     mpc = template_mpc(model, init_offset)
     simulator = template_simulator(model, init_offset)
@@ -88,13 +88,15 @@ for i in range(n_trajectories):
     for k in range(n_days * 24):
         u0 = mpc.make_step(x0)
         y_next = simulator.make_step(u0)
-        x0 = estimator.make_step(y_next)
+
 
         # Append data
         X0.append(np.reshape(x0, (-1, 1)))
         U0.append(np.reshape(u0, (-1, 1)))
         P0.append(np.hstack(mpc.opt_p_num['_tvp']).T)
         H0.append(k % 24)
+
+        x0 = estimator.make_step(y_next)
 
     # plt.ion()
     # fig, ax = plt.subplots(3,1)
