@@ -64,6 +64,7 @@ x0 = np.random.uniform(x0_min,x0_max) # Values between +3 and +3 for all states
 simulator.x0 = x0
 estimator.x0 = x0
 
+
 """
 Scaling
 """
@@ -86,47 +87,63 @@ T_s = [np.reshape(p[:, 0], (1, -1)) for p in P_s]
 SR_s = [np.reshape(p[:, 1], (1, -1)) for p in P_s]
 
 
-
 """
 Setup graphic:
 """
 
-plt.ion()
-fig, ax, graphics = do_mpc.graphics.default_plot(simulator.data)
+# plt.ion()
+# fig, ax, graphics = do_mpc.graphics.default_plot(simulator.data)
 
 
 """
 Run MPC main loop:
 """
 
-for k in range(10): #range(7*24):
+test_index_start = [576, 1248, 1991, 2711, 3455, 4175, 4919, 5663, 6383, 7128, 7848, 8472]
+for start_index in test_index_start[0:3]:
+    print(f'Starting index: {start_index}')
+    model = template_model()
+    simulator = template_simulator(model, step_init=start_index)
+    estimator = do_mpc.estimator.StateFeedback(model)
+    simulator.x0 = x0
+    estimator.x0 = x0
+    x_res = []
+    plt.ion()
+    fig, ax, graphics = do_mpc.graphics.default_plot(simulator.data)
+    for k in range(start_index, start_index+7*24):
 
-    # get control input from neural network
-    # scale states
-    x0_scaled = (x0.T - x_lb) / (x_ub - x_lb)
-    weather_data_dummy = np.ones((1, 50)) * 0.5 # NOTE: Add here the respective (scaled) weather data
+        # get control input from neural network
+        # scale states
+        x0_scaled = (x0.T - x_lb) / (x_ub - x_lb)
+        # weather_data_dummy = np.ones((1, 50)) * 0.5 # NOTE: Add here the respective (scaled) weather data
 
-    u0_scaled = mpc.predict(np.hstack([x0_scaled, T_s[k], SR_s[k]]))
-    u0_real = u0_scaled * (u_ub - u_lb) + u_lb           # scale to real values
-    u0_sat = np.minimum(np.maximum(u0_real, u_lb), u_ub) # ensure admissible control inputs via saturation
+        u0_scaled = mpc.predict(np.hstack([x0_scaled, T_s[k], SR_s[k]]))
+        u0_real = u0_scaled * (u_ub - u_lb) + u_lb           # scale to real values
+        u0_sat = np.minimum(np.maximum(u0_real, u_lb), u_ub) # ensure admissible control inputs via saturation
 
-    # Compute the real control input variables
-    P_HVAC = u0_sat[0, 0]
-    if P_HVAC > 0:
-        P_heat = P_HVAC
-        P_cool = 0.0
-    else:
-        P_heat = 0.0
-        P_cool = -P_HVAC
+        # Compute the real control input variables
+        P_HVAC = u0_sat[0, 0]
+        if P_HVAC > 0:
+            P_heat = P_HVAC
+            P_cool = 0.0
+        else:
+            P_heat = 0.0
+            P_cool = -P_HVAC
 
-    P_bat = u0_sat[0, 1]
+        P_bat = u0_sat[0, 1]
 
-    u_applied = np.vstack([P_heat, P_cool, P_bat])
+        u_applied = np.vstack([P_heat, P_cool, P_bat])
 
-    y_next = simulator.make_step(u_applied)
-    x0 = estimator.make_step(y_next)
+        y_next = simulator.make_step(u_applied)
+        x0 = estimator.make_step(y_next)
+        x_res.append(y_next)
 
-graphics.plot_results()
-graphics.reset_axes()
+    x_res = np.hstack(x_res)
+    print(f'Occurences of T<20°C: {np.sum(x_res[0,:]<20)} times')
+    print(f'Occurences of T>23°C: {np.sum(x_res[0,:]>23)} times')
+    np.save('./data/nn_state_variables', x_res)
+
+    graphics.plot_results()
+    graphics.reset_axes()
 
 input('moinsen!')
