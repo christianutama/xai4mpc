@@ -42,7 +42,7 @@ from template_simulator import template_simulator
 
 
 """ Params """
-n_trajectories = 20000
+n_trajectories = 10000
 n_days = 1
 
 
@@ -53,20 +53,25 @@ Set initial state
 x0_min = np.array([[20.5], [18.0], [18.0], [ 5000.0]])
 x0_max = np.array([[22.5], [25.0], [25.0], [15000.0]])
 
+model = template_model()
+
 X0 = []
 U0 = []
 P0 = []
 H0 = []
 
 for i in range(n_trajectories):
-
+    print(f'TRAJECTORY NO: {i}')
 
     """
     Get configured do-mpc modules:
     """
     # init_offset = np.random.randint(2000 - (n_days + 1) * 24 - 1)
-    init_offset = np.random.randint(0, 8500)
-    model = template_model()
+    # if i%2 == 0:
+    #     init_offset = np.random.randint(0, 720)
+    # else:
+    #     init_offset = np.random.randint(6000, 6720)
+    init_offset = np.random.randint(0, 576)
     mpc = template_mpc(model, init_offset)
     simulator = template_simulator(model, init_offset)
     estimator = do_mpc.estimator.StateFeedback(model)
@@ -85,7 +90,7 @@ for i in range(n_trajectories):
     Run MPC main loop:
     """
 
-    for k in range(n_days * 24):
+    for k in range(24):
         u0 = mpc.make_step(x0)
         y_next = simulator.make_step(u0)
 
