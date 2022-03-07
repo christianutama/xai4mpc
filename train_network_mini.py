@@ -50,12 +50,10 @@ data_in = []
 for x_s, t_s, sr_s in zip(X_s, T_s, SR_s):
     data_in.append(np.hstack([x_s, t_s, sr_s]).reshape(1, -1))
 
-# TODO: re-generate training samples
-data_in = np.load('data/input_init.npy')
-U_s = np.load('data/output_init.npy')
-
 # only use a subset of the features
-data_in = data_in[:, [0, 1, 2, 4, 29]]
+data_in = np.load('./data/input.npy')
+U_s = np.load('./data/output.npy')
+data_in = data_in[:, [0, 1, 2, 3, 4, 29]]
 
 """ Build NN model """
 # TODO: revert to original script
@@ -69,17 +67,20 @@ for _ in range(n_hidden_layers-1):
 outputs = keras.layers.Dense(U_s.shape[1],activation='linear')(x)
 
 model = keras.Model([inputs], [outputs])
+optimizer = keras.optimizers.Adam(learning_rate=5e-4, epsilon=1e-3)
+model.compile(optimizer=optimizer, loss='mse')
 
-model.compile(optimizer='adam',loss='mse')
+early_stopping = keras.callbacks.EarlyStopping(patience=10)
 
 # Train model
 # TODO: revert to original script
 # hist = model.fit(np.vstack(data_in), np.vstack(U_s), batch_size = batch_size, epochs= epochs, shuffle=True)
-hist = model.fit(data_in, U_s, batch_size = batch_size, epochs= epochs, shuffle=True)
+hist = model.fit(data_in, U_s, batch_size = batch_size, epochs= epochs, shuffle=True,
+                 validation_split=0.2, callbacks=[early_stopping])
 
 # save model
 model.save('./models/nn_controller_mini.h5')
 
 # save input-output
-np.save('./data/input', np.vstack(data_in))
-np.save('./data/output', np.vstack(U_s))
+# np.save('./data/input_mini', np.vstack(data_in))
+# np.save('./data/output_mini', np.vstack(U_s))

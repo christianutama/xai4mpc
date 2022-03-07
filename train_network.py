@@ -63,10 +63,10 @@ for x_s, t_s, sr_s in zip(X_s, T_s, SR_s):
 X = np.vstack(data_in)
 y = np.vstack(U_s)
 
-X_train = X[train_index]
-X_test = X[test_index]
-y_train = y[train_index]
-y_test = y[test_index]
+# X_train = X[train_index]
+# X_test = X[test_index]
+# y_train = y[train_index]
+# y_test = y[test_index]
 
 """ Build NN model """
 # TODO: revert to original script
@@ -80,22 +80,22 @@ outputs = keras.layers.Dense(U_s[0].shape[1],activation='linear')(x)
 # outputs = keras.layers.Dense(U_s.shape[1],activation='linear')(x)
 
 model = keras.Model([inputs], [outputs])
+optimizer = keras.optimizers.Adam(learning_rate=1e-3, epsilon=1e-3)
+model.compile(optimizer=optimizer, loss='mse')
 
-model.compile(optimizer='adam',loss='mse')
-
-early_stopping = keras.callbacks.EarlyStopping(patience=30)
+# early_stopping = keras.callbacks.EarlyStopping(patience=100)
 
 # Train model
 # TODO: revert to original script
-hist = model.fit(X_train,
-                 y_train,
+hist = model.fit(X,
+                 y,
                  batch_size = batch_size,
                  epochs= epochs,
-                 shuffle=True,
-                 validation_split=0.2,
-                 callbacks=[early_stopping])
+                 shuffle=True)#,
+                 # validation_split=0.2,
+                 # callbacks=[early_stopping])
 # hist = model.fit(data_in, U_s, batch_size = batch_size, epochs= epochs, shuffle=True)
-model.evaluate(X_test, y_test)
+# model.evaluate(X_test, y_test)
 
 # save model
 model.save('./models/nn_controller_small.h5')
@@ -103,5 +103,5 @@ model.save('./models/nn_controller_small.h5')
 # save input-output
 np.save('./data/input', np.vstack(data_in))
 np.save('./data/output', np.vstack(U_s))
-np.save('./data/X_train', X_train)
-np.save('./data/X_test', X_test)
+# np.save('./data/X_train', X_train)
+# np.save('./data/X_test', X_test)
