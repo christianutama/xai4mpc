@@ -51,7 +51,7 @@ Get configured do-mpc modules:
 model = template_model()
 # mpc = tf.keras.models.load_model('./models/nn_controller_small.h5')
 # for mini controller:
-mpc = tf.keras.models.load_model('./models/nn_controller_mini.h5')
+mpc = tf.keras.models.load_model('./models/nn_controller_complete.h5')
 simulator = template_simulator(model)
 estimator = do_mpc.estimator.StateFeedback(model)
 
@@ -99,7 +99,7 @@ p_ub = np.array([[ 30.0, 1200.0]])
 T_SR = np.vstack([(p - p_lb)/(p_ub - p_lb) for p in T_SR])
 T_s = []
 SR_s = []
-for i in range(T_SR.shape[0]-25):
+for i in range(T_SR.shape[0]-24):
     T_s.append(T_SR[i:i+25, 0])
     SR_s.append(T_SR[i:i+25, 1])
 
@@ -116,9 +116,11 @@ Setup graphic:
 Run MPC main loop:
 """
 
-test_index_start = [576, 1248, 1991, 2711, 3455, 4175, 4919, 5663, 6383, 7128, 7848, 8472]
-for start_index in test_index_start[1:2]:
-    print(f'Starting index: {start_index}')
+test_index_start = [576, 1248, 1991, 2711, 3455, 4175, 4919, 5663, 6383, 7128, 7848, 8568]
+avg_violations = []
+max_violations = []
+total_grid_energy = []
+for start_index in test_index_start:
     model = template_model()
     simulator = template_simulator(model, step_init=start_index)
     estimator = do_mpc.estimator.StateFeedback(model)
@@ -134,9 +136,9 @@ for start_index in test_index_start[1:2]:
         # scale states
         x0_scaled = (x0.T - x_lb) / (x_ub - x_lb)
         # weather_data_dummy = np.ones((1, 50)) * 0.5 # NOTE: Add here the respective (scaled) weather data
-        # u0_scaled = mpc.predict(np.hstack([x0_scaled, T_s[k].reshape(1,-1), SR_s[k].reshape(1,-1)]))
+        u0_scaled = mpc.predict(np.hstack([x0_scaled, T_s[k].reshape(1,-1), SR_s[k].reshape(1,-1)]))
         # for mini controller:
-        u0_scaled = mpc.predict(np.hstack([x0_scaled[:,0:4], T_s[k].reshape(1,-1)[:,0:1], SR_s[k].reshape(1,-1)[:,0:1]]))
+        # u0_scaled = mpc.predict(np.hstack([x0_scaled[:,0:4], T_s[k].reshape(1,-1)[:,0:1], SR_s[k].reshape(1,-1)[:,0:1]]))
         u0_real = u0_scaled * (u_ub - u_lb) + u_lb           # scale to real values
         u0_sat = np.minimum(np.maximum(u0_real, u_lb), u_ub) # ensure admissible control inputs via saturation
 
@@ -160,18 +162,37 @@ for start_index in test_index_start[1:2]:
 
     x_res = np.hstack(x_res)
     u0_res = np.hstack(u0_res)
+    T_r = x_res[0,:]
+    print(f'Start index: {start_index}')
     print(f'Occurences of T<20°C: {np.sum(x_res[0,:]<20)} times')
     print(f'Occurences of T>23°C: {np.sum(x_res[0,:]>23)} times')
-    print(f'Average T violation: {np.mean(np.maximum(x_res[0, :] - 20, 0))} °C/h')
-    print(f'Maximum absolute T violation: {np.max(np.maximum(x_res[0, :] - 20, 0))} °C')
+    violations = []
+    for T in T_r:
+        if T < 20:
+            violations.append(20-T)
+        elif T > 23:
+            violations.append(T-23)
+        else:
+            violations.append(0)
+    avg_violation = np.mean(violations)
+    max_violation = np.max(violations)
+    print(f'Average T violation: {avg_violation} °C/h')
+    print(f'Maximum absolute T violation: {max_violation} °C')
     # np.save('./data/nn_state_variables', x_res)
-    print(f"Total energy bought from/sold to the grid: {np.sum(graphics.data['_aux', 'P_grid'])/1000} kWh")
+    total_energy = np.sum(graphics.data['_aux', 'P_grid'])/1000
+    print(f"Total energy bought from/sold to the grid: {total_energy} kWh")
     print(f"Total heating energy: {np.sum(graphics.data['_u', 'P_heat']) / 1000} kWh")
-
+    print('')
+    avg_violations.append(avg_violation)
+    max_violations.append(max_violation)
+    total_grid_energy.append(total_energy)
     # np.save('u0_nn', u0_res)
 
     graphics.plot_results()
     graphics.reset_axes()
 
+results = np.vstack([avg_violations, max_violations, total_grid_energy])
+results = np.array(results)
+np.save('results_nn', results)
 input('moinsen!')
 
