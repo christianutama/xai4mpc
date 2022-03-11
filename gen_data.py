@@ -42,7 +42,7 @@ from template_simulator import template_simulator
 
 
 """ Params """
-n_trajectories = 10000
+n_trajectories = 6000
 n_days = 1
 
 
@@ -68,10 +68,10 @@ for i in range(n_trajectories):
     """
     # init_offset = np.random.randint(2000 - (n_days + 1) * 24 - 1)
     # if i%2 == 0:
-    #     init_offset = np.random.randint(0, 720)
+    #     init_offset = np.random.randint(0, 576)
     # else:
-    #     init_offset = np.random.randint(6000, 6720)
-    init_offset = np.random.randint(0, 576)
+    #     init_offset = np.random.randint(5087, 5663)
+    init_offset = np.random.randint(5087, 5663)
     mpc = template_mpc(model, init_offset)
     simulator = template_simulator(model, init_offset)
     estimator = do_mpc.estimator.StateFeedback(model)
@@ -122,5 +122,5 @@ for i in range(n_trajectories):
 
 
 exp_dic = {'X': X0, 'U': U0, 'P': P0, 'H':H0}
-with open('./data/training_data.pkl', 'wb') as f:
+with open('./data/training_data_complete.pkl', 'wb') as f:
     pickle.dump(exp_dic, f)

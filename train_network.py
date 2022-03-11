@@ -14,7 +14,7 @@ batch_size = 512
 
 
 """ Load data """
-with open(r'./data/training_data.pkl', 'rb') as f:
+with open(r'./data/training_data_complete.pkl', 'rb') as f:
     data = pickle.load(f)
 X_raw = data['X']
 U_raw = data['U']
@@ -83,7 +83,7 @@ model = keras.Model([inputs], [outputs])
 optimizer = keras.optimizers.Adam(learning_rate=1e-3, epsilon=1e-3)
 model.compile(optimizer=optimizer, loss='mse')
 
-# early_stopping = keras.callbacks.EarlyStopping(patience=100)
+early_stopping = keras.callbacks.EarlyStopping(patience=100)
 
 # Train model
 # TODO: revert to original script
@@ -91,17 +91,17 @@ hist = model.fit(X,
                  y,
                  batch_size = batch_size,
                  epochs= epochs,
-                 shuffle=True)#,
-                 # validation_split=0.2,
-                 # callbacks=[early_stopping])
+                 shuffle=True,
+                 validation_split=0.2,
+                 callbacks=[early_stopping])
 # hist = model.fit(data_in, U_s, batch_size = batch_size, epochs= epochs, shuffle=True)
 # model.evaluate(X_test, y_test)
 
 # save model
-model.save('./models/nn_controller_small.h5')
+model.save('./models/nn_controller_complete.h5')
 
 # save input-output
-np.save('./data/input', np.vstack(data_in))
-np.save('./data/output', np.vstack(U_s))
+np.save('./data/input_complete', np.vstack(data_in))
+np.save('./data/output_complete', np.vstack(U_s))
 # np.save('./data/X_train', X_train)
 # np.save('./data/X_test', X_test)
