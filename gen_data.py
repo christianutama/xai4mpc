@@ -67,11 +67,11 @@ for i in range(n_trajectories):
     Get configured do-mpc modules:
     """
     # init_offset = np.random.randint(2000 - (n_days + 1) * 24 - 1)
-    # if i%2 == 0:
-    #     init_offset = np.random.randint(0, 576)
-    # else:
-    #     init_offset = np.random.randint(5087, 5663)
-    init_offset = np.random.randint(5087, 5663)
+    if i % 2 == 0:
+        init_offset = np.random.randint(0, 576)
+    else:
+        init_offset = np.random.randint(5087, 5663)
+    # init_offset = np.random.randint(5087, 5663)
     mpc = template_mpc(model, init_offset)
     simulator = template_simulator(model, init_offset)
     estimator = do_mpc.estimator.StateFeedback(model)
