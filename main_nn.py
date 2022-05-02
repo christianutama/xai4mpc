@@ -124,6 +124,7 @@ for start_index in test_index_start:
     model = template_model()
     simulator = template_simulator(model, step_init=start_index)
     estimator = do_mpc.estimator.StateFeedback(model)
+    x0 = np.array([[20.5], [18.0], [18.0], [5000.0]])
     simulator.x0 = x0
     estimator.x0 = x0
     x_res = []
@@ -136,7 +137,7 @@ for start_index in test_index_start:
         # scale states
         x0_scaled = (x0.T - x_lb) / (x_ub - x_lb)
         # weather_data_dummy = np.ones((1, 50)) * 0.5 # NOTE: Add here the respective (scaled) weather data
-        u0_scaled = mpc.predict(np.hstack([x0_scaled, T_s[k].reshape(1,-1), SR_s[k].reshape(1,-1)]))
+        u0_scaled = mpc.predict(np.hstack([x0_scaled, T_s[k].reshape(1, -1), SR_s[k].reshape(1, -1)]))
         # for mini controller:
         # u0_scaled = mpc.predict(np.hstack([x0_scaled[:,0:4], T_s[k].reshape(1,-1)[:,0:1], SR_s[k].reshape(1,-1)[:,0:1]]))
         u0_real = u0_scaled * (u_ub - u_lb) + u_lb           # scale to real values
@@ -190,6 +191,8 @@ for start_index in test_index_start:
 
     graphics.plot_results()
     graphics.reset_axes()
+
+    fig.savefig(f'./output/plots/closed_loop_nn/start_index_{start_index}.png')
 
 results = np.vstack([avg_violations, max_violations, total_grid_energy])
 results = np.array(results)
