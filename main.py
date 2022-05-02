@@ -86,10 +86,10 @@ for start_index in test_index_start:
         u0_res.append(u0)
 
         graphics.plot_results(t_ind=k)
-        graphics.plot_predictions(t_ind=k)
+        # graphics.plot_predictions(t_ind=k)
         graphics.reset_axes()
-        plt.show()
-        plt.pause(0.01)
+        # plt.show()
+        # plt.pause(0.01)
 
     total_energy = np.sum(graphics.data['_aux', 'P_grid'])/1000
     print(f"Total energy bought from/sold to the grid: {total_energy} kWh")
@@ -97,6 +97,7 @@ for start_index in test_index_start:
     print('')
     u0_res = np.hstack(u0_res)
     total_grid_energy.append(total_energy)
+    fig.savefig(f'./output/plots/closed_loop_mpc/start_index_{start_index}.png')
 # np.save('u0_mpc', u0_res)
 
 total_grid_energy = np.array(total_grid_energy)
