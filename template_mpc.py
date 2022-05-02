@@ -180,6 +180,10 @@ def template_mpc_shap(model, T_sr_data):
 
     mpc.set_tvp_fun(tvp_fun)
 
+    # Disable solver output messages
+    mpc.nlpsol_opts['ipopt.print_level'] = 0
+    mpc.nlpsol_opts['print_time'] = 0
+
     mpc.setup()
 
     return mpc
